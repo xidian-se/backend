@@ -1,31 +1,14 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-
-
-# min = 0
-# max = 99999999999
-
 class Owner(models.Model):
-    # id = models.IntegerField(
-    #     validators = [
-    #         MinValueValidator(min),
-    #         MaxValueValidator(max)
-    #     ],
-    #     primary_key = True
-    # )
     name = models.CharField(max_length=10)
     phone = models.CharField(max_length=11)
     address = models.CharField(max_length=50)
+    username = models.CharField(max_length=20)
+    password = models.CharField(max_length=20)
 
 class House(models.Model):
-    # id = models.IntegerField(
-    #     validators = [
-    #         MinValueValidator(min),
-    #         MaxValueValidator(max),
-    #     ],
-    #     primary_key = True
-    # )
     owners = models.ForeignKey(Owner,on_delete=models.CASCADE)
     address = models.CharField(max_length=200)
     text = models.CharField(max_length=200)
@@ -38,16 +21,14 @@ class House(models.Model):
     state = models.BooleanField()
 
 class Tenant(models.Model):
-    # id = models.IntegerField(
-    #     validators = [
-    #         MinValueValidator(min),
-    #         MaxValueValidator(max),
-    #     ],
-    #     primary_key = True
-    # )
     name = models.CharField(max_length=10)
     birth = models.DateTimeField()
     sex = models.BooleanField()
     phone = models.CharField(max_length=11)
     address = models.ForeignKey(House,on_delete=models.CASCADE)
+    username = models.CharField(max_length=20)
+    password = models.CharField(max_length=20)
 
+
+
+# class ResRational(models.Model):
