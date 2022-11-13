@@ -3,7 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 
-# min = 10000000000
+# min = 0
 # max = 99999999999
 
 class Owner(models.Model):
@@ -16,7 +16,7 @@ class Owner(models.Model):
     # )
     name = models.CharField(max_length=10)
     phone = models.CharField(max_length=11)
-    address = models.TextField(max_length=200)
+    address = models.CharField(max_length=50)
 
 class House(models.Model):
     # id = models.IntegerField(
