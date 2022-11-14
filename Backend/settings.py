@@ -47,7 +47,8 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # https://blog.csdn.net/weixin_45866062/article/details/124501046
+    #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -73,9 +74,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Backend.wsgi.application'
 
+CORS_ALLOW_ALL_ORIGINS = True
 
-# 允许全部来源
-CORS_ORIGIN_ALLOW_ALL  = True  # 如果为True，将不使用白名单，并且将接受所有来源。默认为False
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -105,6 +105,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Session
+# https://docs.djangoproject.com/zh-hans/4.1/topics/http/sessions/
+SESSION_ENGINE ="django.contrib.sessions.backends.db"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
