@@ -29,6 +29,7 @@ class Tenant(models.Model):
     username = models.CharField(max_length=20)
     password = models.CharField(max_length=20)
 
-
-
-# class ResRational(models.Model):
+# 当租客请求租房子时候，这里储存租客和房子的联系，成功/失败会撤回的
+class Relation(models.Model):
+    tenant = models.ForeignKey(Tenant,on_delete=models.CASCADE)
+    house = models.ForeignKey(House,on_delete=models.CASCADE)
