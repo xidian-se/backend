@@ -3,10 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 from .models import *
 # from app01.serializer import OwnerListSerializer
-from django.http import JsonResponse, HttpResponse
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
+from django.http import JsonResponse
 import json
 
 def only_get_data(identity, index):
@@ -40,7 +37,7 @@ def login(request):
                 "isLogin": True,
                 "reason": "已经登录",
                 "identity": request.session["identity"],
-                data: only_get_data(
+                "data": only_get_data(
                     request.session["identity"],
                     request.session["id"],
                 )
@@ -272,7 +269,6 @@ def own_up(request):
 # GET tenant info
 def ten_info(request):
     if request.session["identity"] == False:
-        print(only_get_data(request.session["identity"],request.session["id"]))
         return JsonResponse(only_get_data(request.session["identity"],request.session["id"]))
     else:
         return JsonResponse({"isSuccess": False, "reason": "不是请求租户或者没有登录"})
@@ -297,11 +293,46 @@ def own_info(request):
 # The folling data sent to me is used to update the house information.
 # {
 #   "id": "",
-#  "name": "",
-#  "address": "",
-#  "total": 0,
-#  "rent": 0,
-#  "price": 0,
-#  "description": ""
+#   "name": "",
+#   "address": "",
+#   "total": 0,
+#   "rent": 0,
+#   "price": 0,
+#   "description": ""
 # }
 # Return see the code. (这句话是中式英语)
+# NOT TESTED!
+def houseinfo(request):
+    if request.method == "POST":
+        # Check is owner login.
+        if request.session["identity"] != True:
+            return JsonResponse({"isSuccess": False, "reason": "不是房主身份登录"})
+        # Start dealing.
+        data = json.loads(request.body)
+        temp = Account.objects.get(id=request.session["id"]).owner
+        if "id" in data: # Update
+            # Check if it is the owner.
+            to_change = House.objects.get(id=data["id"])
+            if to_change.owners != temp.owner:
+                return JsonResponse({"isSuccess": False, "reason": "不是房主本人登录"})
+            # Start updating.
+            to_change.name = data["name"]
+            to_change.address = data["address"]
+            to_change.maxnum = data["total"]
+            to_change.rent = data["rent"]
+            to_change.price = data["price"]
+            to_change.description = data["description"]
+            return JsonResponse({"isSuccess": True, "reason": "修改成功"})
+        else: # Add
+            House.object.create(
+                owner = temp,
+                name = data["name"],
+                address = data["address"],
+                maxnum = data["total"],
+                rent = data["rent"],
+                price = data["price"],
+                description = data["description"],
+            )
+            return JsonResponse({"isSuccess": True, "reason": "添加成功"})
+    else:
+        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})

@@ -10,11 +10,16 @@ class Owner(models.Model):
 class House(models.Model):
     owners = models.ForeignKey(Owner,on_delete=models.CASCADE)
     address = models.CharField(max_length=200)
-    text = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
+    description = models.CharField(max_length=200)
     maxnum = models.IntegerField(
         validators = [
             MinValueValidator(1),
             MaxValueValidator(10)
+        ])
+    rent = models.IntegerField(validators = [
+            MinValueValidator(0),
+            MaxValueValidator(maxnum)
         ])
     price = models.FloatField()
     state = models.BooleanField()
