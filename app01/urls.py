@@ -13,4 +13,5 @@ urlpatterns = [
     path('owner/update',views.own_up,name='up_own'),
     path('tenant/info',views.ten_info,name='ten_info'),
     path('owner/info',views.own_info,name='own_info'),
+    path('owner/houseinfo',views.houseinfo,name='houseinfo'),
 ]
