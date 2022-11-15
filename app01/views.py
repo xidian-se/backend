@@ -283,3 +283,32 @@ def own_info(request):
         return JsonResponse(only_get_data(request.session["identity"],request.session["id"]))
     else:
         return JsonResponse({"isSuccess": False, "reason": "不是请求房主或者没有登录"})
+
+# API for house. My sweet home.
+# The folling data sent to me is used to add the house information.
+# {
+#   "name": "",
+#   "address": "",
+#   "total": 0,
+#   "rent": 0,
+#   "price": 0,
+#   "description": ""
+# }
+# The folling data sent to me is used to update the house information.
+# {
+#   "id": "",
+#  "name": "",
+#  "address": "",
+#  "total": 0,
+#  "rent": 0,
+#  "price": 0,
+#  "description": ""
+# }
+# Return see the code. (这句话是中式英语)
+def houseinfo(request):
+    if request.method == "POST":
+        # See if has the same name here.
+        
+    else:
+        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
+
