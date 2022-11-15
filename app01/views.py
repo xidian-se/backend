@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from rest_framework import status
 import json
 
-
 def only_get_data(identity, index):
     if identity == False:  # Tenant
         temp = Tenant.objects.get(id=index)
@@ -33,8 +32,6 @@ def only_get_data(identity, index):
 # Deal with the login issue.
 # Get: {"username":xxx,"password":xxx}
 # Return see the code. Session not tested.
-
-
 def login(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -87,7 +84,6 @@ def login(request):
             else:
                 return JsonResponse({"isLogin": False, "reason": "密码错误"})
     elif request.method == "GET":
-
         if request.session.get("isLogin") == True:
             return JsonResponse({
                 "isLogin": True,
@@ -100,6 +96,15 @@ def login(request):
             })
         else:
             return JsonResponse({"isLogin": False, "reason": "没有登录"})
+    else:
+        return JsonResponse({"isSuccess": False, "reason": "POST 登录 GET 检测状态"})
+
+# Deal with the logout issue. Just clear the session.
+# Return see the code. Session not tested.
+def logout(request):
+    if request.method == "POST":
+        request.session.clear()
+        return JsonResponse({"isSuccess": True, "reason": "登录状态被清除"})
     else:
         return JsonResponse({"isSuccess": False, "reason": "POST 登录 GET 检测状态"})
 
@@ -217,6 +222,9 @@ def ten_up(request):
         except Account.DoesNotExist:
             return JsonResponse({"isSuccess": False, "reason": "用户没找到"})
         else:
+            # Identity check.
+            if request.session["id"] == to_change.id:
+                return JsonResponse({"isSuccess": False, "reason": "非本人操作"})
             # Make sure it's a full crab. I'm pretty sure it is a rare condition.
             if ('name' not in data.keys()):
                 return JsonResponse({"isSuccess": False, "reason": "发送名字有空的"})
@@ -245,8 +253,6 @@ Update owner information
 Return see the code.
 WARNING: NEED TO WRITE HOW TO VERTIFY THE LOGIN STATUS
 '''
-
-
 def own_up(request):
     if request.method == "POST":
         # See if has the same name here.
@@ -256,6 +262,9 @@ def own_up(request):
         except Account.DoesNotExist:
             return JsonResponse({"isSuccess": False, "reason": "用户没找到"})
         else:
+            # Identity check.
+            if request.session["id"] == to_change.id:
+                return JsonResponse({"isSuccess": False, "reason": "非本人操作"})
             # Make sure it's a full crab. I'm pretty sure it is a rare condition.
             if ('name' not in data.keys()):
                 return JsonResponse({"isSuccess": False, "reason": "发送名字有空的"})
@@ -268,3 +277,18 @@ def own_up(request):
             return JsonResponse({"isSuccess": True, "reason": "修改成功"})
     else:
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
+
+# GET tenant info
+def ten_info(request):
+    print(request.session.keys())
+    if request.session["identity"] == False:
+        return JsonResponse(only_get_data(request.session["identity"],request.session["id"]))
+    else:
+        return JsonResponse({"isSuccess": False, "reason": "不是请求租户或者没有登录"})
+
+# GET owner info
+def own_info(request):
+    if request.session["identity"] == True:
+        return JsonResponse(only_get_data(request.session["identity"],request.session["id"]))
+    else:
+        return JsonResponse({"isSuccess": False, "reason": "不是请求房主或者没有登录"})
