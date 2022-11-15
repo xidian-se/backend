@@ -305,10 +305,3 @@ def own_info(request):
 #  "description": ""
 # }
 # Return see the code. (这句话是中式英语)
-def houseinfo(request):
-    if request.method == "POST":
-        # See if has the same name here.
-        
-    else:
-        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
-
