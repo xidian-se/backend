@@ -11,7 +11,7 @@ import json
 
 def only_get_data(identity, index):
     if identity == False:  # Tenant
-        temp = Tenant.objects.get(id=index)
+        temp = Account.objects.get(id=index).tenant
         return {
             "name": temp.name,
             "birth": temp.birth,
@@ -20,7 +20,7 @@ def only_get_data(identity, index):
             "address": temp.address,
         }
     elif identity == True:  # Owner
-        temp = Owner.objects.get(id=index)
+        temp = Account.objects.get(id=index).owner
         return {
             "name": temp.name,
             "phone": temp.phone,
@@ -196,23 +196,17 @@ def reg_own(request):
     else:
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
 
-
-'''
-Update tenant information
-Get: {
-  "name": "",
-  "address": "",
-  "sex": "",
-  "phone": "",
-  "birth": "",
-  "username": "",
-  "password": ""
-}
-Return see the code.
-WARNING: NEED TO WRITE HOW TO VERTIFY THE LOGIN STATUS
-'''
-
-
+# Update tenant information
+# Get: {
+#   "name": "",
+#   "address": "",
+#   "sex": "",
+#   "phone": "",
+#   "birth": "",
+#   "username": "",
+#   "password": ""
+# }
+# Return see the code.
 def ten_up(request):
     if request.method == "POST":
         # See if has the same name here.
@@ -241,18 +235,15 @@ def ten_up(request):
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
 
 
-'''
-Update owner information
-{
-  "name": "",
-  "address": "",
-  "phone": "",
-  "username": "",
-  "password": ""
-}
-Return see the code.
-WARNING: NEED TO WRITE HOW TO VERTIFY THE LOGIN STATUS
-'''
+# Update owner information
+# {
+#   "name": "",
+#   "address": "",
+#   "phone": "",
+#   "username": "",
+#   "password": ""
+# }
+#Return see the code.
 def own_up(request):
     if request.method == "POST":
         # See if has the same name here.
@@ -280,8 +271,8 @@ def own_up(request):
 
 # GET tenant info
 def ten_info(request):
-    print(request.session.keys())
     if request.session["identity"] == False:
+        print(only_get_data(request.session["identity"],request.session["id"]))
         return JsonResponse(only_get_data(request.session["identity"],request.session["id"]))
     else:
         return JsonResponse({"isSuccess": False, "reason": "不是请求租户或者没有登录"})

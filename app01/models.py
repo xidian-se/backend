@@ -16,7 +16,7 @@ class House(models.Model):
             MinValueValidator(1),
             MaxValueValidator(10)
         ])
-    charge = models.FloatField()
+    price = models.FloatField()
     state = models.BooleanField()
 
 class Tenant(models.Model):
