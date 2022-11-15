@@ -49,7 +49,6 @@ def login(request):
                 else:
                     return JsonResponse({"isLogin": False, "reason":"在判断用户信息时候出错"})
                 request.session["id"] = temp.id
-                request.session["isLogin"] = True
                 request.session["identity"] = temp.identity
                 data["isLogin"] = True
                 return JsonResponse(data)
