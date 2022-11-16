@@ -456,11 +456,15 @@ def ten_req(request):
             house_to_rent = House.objects.get(id=data["id"])
             if house_to_rent.rent >= house_to_rent.maxnum:
                 return JsonResponse({"isSuccess": False, "reason": "该房屋已经满员"})
-            if Relation.objects.filter(house=house_to_rent,tenant=tenant).exists():
-                return JsonResponse({"isSuccess": False, "reason": "该用户已经请求"})
+            if tenant.renting == house_to_rent:
+                return JsonResponse({"isSuccess": False, "reason": "该用户已经租住于此"})
             r = Relation(50,house_to_rent,tenant)
             r.save()
             return JsonResponse({"isSuccess": True, "reason": "请求已经发送", "id": r.id})
     else:
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
+
+# Tenant require canceling renting a house.
+# No need to write, owner got the right to do it.
+
 
