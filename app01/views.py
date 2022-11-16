@@ -333,6 +333,7 @@ def houseinfo(request):
                 to_change.price = data["price"]
             if "description" in data:
                 to_change.description = data["description"]
+            to_change.save()
             return JsonResponse({"isSuccess": True, "reason": "修改成功"})
         else: # Add
             House.objects.create(
@@ -376,3 +377,27 @@ def houseinfo(request):
             return JsonResponse(to_return,safe=False)
     else:
         return JsonResponse({"isSuccess": False, "reason": "POST添加修改GET获取信息"})
+
+# Remove the house.
+# POST:
+# The folling data sent to me is used to add the house information.
+# {
+#   "id": "",
+# }
+# For the things that returns to you, see the code.
+def housedels(request):
+    if request.method == "POST":
+        id_to_del = request.body["id"]
+        house = House.objects.get(id=id_to_del)
+        if house.owner != Owner.objects.get(id=request.session["id"]):
+            return JsonResponse({"isSuccess": False, "reason": "不是你的房子"}, status_code = 400)
+        try:
+            house.delete()
+        except:
+            return JsonResponse({"isSuccess": False, "reason": "删除失败"}, status_code = 400)
+        else:
+            return JsonResponse({"isSuccess": True, "reason": "删除成功"})
+    else:
+        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"}, status_code = 400)
+
+        
