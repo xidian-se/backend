@@ -86,7 +86,7 @@ def login(request):
                 "isLogin": True,
                 "reason": "已经登录",
                 "identity": request.session["identity"],
-                data: only_get_data(
+                "data": only_get_data(
                     request.session["identity"],
                     request.session["id"],
                 )
