@@ -97,13 +97,10 @@ def login(request):
         return JsonResponse({"isSuccess": False, "reason": "POST 登录 GET 检测状态"})
 
 # Deal with the logout issue. Just clear the session.
-# Return see the code. Session not tested.
+# Return see the code. 
 def logout(request):
-    if request.method == "POST":
-        request.session.clear()
-        return JsonResponse({"isSuccess": True, "reason": "登录状态被清除"})
-    else:
-        return JsonResponse({"isSuccess": False, "reason": "POST 登录 GET 检测状态"})
+    request.session.clear()
+    return JsonResponse({"isSuccess": True, "reason": "登录状态被清除"})
 
 
 # Add a tenant account.
@@ -281,6 +278,7 @@ def own_info(request):
         return JsonResponse({"isSuccess": False, "reason": "不是请求房主或者没有登录"})
 
 # API for house. My sweet home.
+# POST:
 # The folling data sent to me is used to add the house information.
 # {
 #   "name": "",
@@ -300,16 +298,20 @@ def own_info(request):
 #   "price": 0,
 #   "description": ""
 # }
+# GET:
+# With id, I can send you the detail of the house with the id.
+# Else, I will show the information of the houses owned by this owner.
 # Return see the code. (这句话是中式英语)
 # NOT TESTED!
 def houseinfo(request):
+    # Check is owner login.
+    if request.session["identity"] != True:
+        return JsonResponse({"isSuccess": False, "reason": "不是房主身份登录"})
+    # Start dealing.
+    data = json.loads(request.body)
+    temp = Account.objects.get(id=request.session["id"]).owner
+    # Change the data.
     if request.method == "POST":
-        # Check is owner login.
-        if request.session["identity"] != True:
-            return JsonResponse({"isSuccess": False, "reason": "不是房主身份登录"})
-        # Start dealing.
-        data = json.loads(request.body)
-        temp = Account.objects.get(id=request.session["id"]).owner
         if "id" in data: # Update
             # Check if it is the owner.
             to_change = House.objects.get(id=data["id"])
@@ -334,5 +336,33 @@ def houseinfo(request):
                 description = data["description"],
             )
             return JsonResponse({"isSuccess": True, "reason": "添加成功"})
+    elif request.method == "GET":
+        if "id" in data: # Specific 
+            house = House.objects.get(id=data["id"])
+            if house.owners != temp:
+                return JsonResponse({"isSuccess": False, "reason": "不是你的房子"})
+            else:
+                return JsonResponse({
+                    "name": house.name,
+                    "address": house.address,
+                    "total": house.maxnum,
+                    "rent": house.rent,
+                    "price": house.price,
+                    "description": house.description
+                })
+        else: # All house owned by this owner.
+            results = House.objects.all(owner=temp)
+            to_return = []
+            for i in results:
+                to_return.append({
+                    "id": house.id,
+                    "name": house.name,
+                    "address": house.address,
+                    "total": house.maxnum,
+                    "rent": house.rent,
+                    "price": house.price,
+                    "description": house.description
+                })
+            return JsonResponse(to_return)
     else:
-        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
+        return JsonResponse({"isSuccess": False, "reason": "POST添加修改GET获取信息"})
