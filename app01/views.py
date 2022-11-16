@@ -442,5 +442,25 @@ def pay(request):
 # {
 #   id: // id of the house.
 # }
-
+# Will return the relation's id.
+def ten_req(request):
+    if request.method == "POST":
+        if request.session["identity"] != False:
+            return JsonResponse({"isSuccess": False, "reason": "非租户身份登录"})
+        try:
+            tenant = Tenant.objects.get(id=request.session["id"])
+        except Tenant.DoesNotExist:
+            return JsonResponse({"isSuccess": False, "reason": "租户信息没找到"})
+        else:
+            data = json.loads(request.body)
+            house_to_rent = House.objects.get(id=data["id"])
+            if house_to_rent.rent >= house_to_rent.maxnum:
+                return JsonResponse({"isSuccess": False, "reason": "该房屋已经满员"})
+            if Relation.objects.filter(house=house_to_rent,tenant=tenant).exists():
+                return JsonResponse({"isSuccess": False, "reason": "该用户已经请求"})
+            r = Relation(50,house_to_rent,tenant)
+            r.save()
+            return JsonResponse({"isSuccess": True, "reason": "请求已经发送", "id": r.id})
+    else:
+        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
 
