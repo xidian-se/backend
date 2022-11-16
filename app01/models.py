@@ -38,6 +38,7 @@ class Tenant(models.Model):
 class Relation(models.Model):
     tenant = models.ForeignKey(Tenant,on_delete=models.CASCADE)
     house = models.ForeignKey(House,on_delete=models.CASCADE)
+    paid = models.BooleanField()
 
 # 存储帐号信息，identity 真为 Owner 假为 Tenant
 class Account(models.Model):
