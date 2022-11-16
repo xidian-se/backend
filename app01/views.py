@@ -202,25 +202,25 @@ def reg_own(request):
 # Return see the code.
 def ten_up(request):
     if request.method == "POST":
+        if request.session["identity"] != False:
+            return JsonResponse({"isSuccess": False, "reason": "不是租户身份登录"})
         # See if has the same name here.
         data = json.loads(request.body)
         try:
-            to_change = Account.objects.get(username=data.get("username"))
+            to_change = Account.objects.get(id=request.session["id"]).tenant
+            print(to_change.id)
         except Account.DoesNotExist:
             return JsonResponse({"isSuccess": False, "reason": "用户没找到"})
         else:
-            # Identity check.
-            if request.session["id"] == to_change.id:
-                return JsonResponse({"isSuccess": False, "reason": "非本人操作"})
             # Make sure it's a full crab. I'm pretty sure it is a rare condition.
             if 'name' not in data.keys():
                 return JsonResponse({"isSuccess": False, "reason": "发送名字有空的"})
             # Change data
-            to_change["name"] = data["name"]
-            to_change["address"] = data["address"]
-            to_change["sex"] = data["sex"]
-            to_change["phone"] = data["phone"]
-            to_change["birth"] = data["birth"]
+            to_change.name = data["name"]
+            to_change.address = data["address"]
+            to_change.sex = data["sex"]
+            to_change.phone = data["phone"]
+            to_change.birth = data["birth"]
             to_change.save()
             return JsonResponse({"isSuccess": True, "reason": "修改成功"})
     else:
@@ -238,23 +238,22 @@ def ten_up(request):
 #Return see the code.
 def own_up(request):
     if request.method == "POST":
+        if request.session["identity"] != True:
+            return JsonResponse({"isSuccess": False, "reason": "不是房主身份登录"})
         # See if has the same name here.
         data = json.loads(request.body)
         try:
-            to_change = Account.objects.get(username=data.get("username"))
+            to_change = Account.objects.get(id=request.session["id"]).owner
         except Account.DoesNotExist:
             return JsonResponse({"isSuccess": False, "reason": "用户没找到"})
         else:
-            # Identity check.
-            if request.session["id"] == to_change.id:
-                return JsonResponse({"isSuccess": False, "reason": "非本人操作"})
             # Make sure it's a full crab. I'm pretty sure it is a rare condition.
             if ('name' not in data.keys()):
                 return JsonResponse({"isSuccess": False, "reason": "发送名字有空的"})
             # Change data
-            to_change["name"] = data["name"]
-            to_change["address"] = data["address"]
-            to_change["phone"] = data["phone"]
+            to_change.name = data["name"]
+            to_change.address = data["address"]
+            to_change.phone = data["phone"]
             to_change.save()
             return JsonResponse({"isSuccess": True, "reason": "修改成功"})
     else:
