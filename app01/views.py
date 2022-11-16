@@ -102,7 +102,6 @@ def logout(request):
     request.session.clear()
     return JsonResponse({"isSuccess": True, "reason": "登录状态被清除"})
 
-
 # Add a tenant account.
 # Get: {
 #  "name": "",
@@ -217,13 +216,14 @@ def ten_up(request):
             if ('name' not in data.keys()):
                 return JsonResponse({"isSuccess": False, "reason": "发送名字有空的"})
             # Change data
-            to_change["username"] = data["username"],
-            to_change["password"] = data["password"],
-            to_change["name"] = data["name"],
-            to_change["address"] = data["address"],
-            to_change["sex"] = data["sex"],
-            to_change["phone"] = data["phone"],
-            to_change["birth"] = data["birth"],
+            to_change["username"] = data["username"]
+            to_change["password"] = data["password"]
+            to_change["name"] = data["name"]
+            to_change["address"] = data["address"]
+            to_change["sex"] = data["sex"]
+            to_change["phone"] = data["phone"]
+            to_change["birth"] = data["birth"]
+            to_change.save()
             return JsonResponse({"isSuccess": True, "reason": "修改成功"})
     else:
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
@@ -254,11 +254,12 @@ def own_up(request):
             if ('name' not in data.keys()):
                 return JsonResponse({"isSuccess": False, "reason": "发送名字有空的"})
             # Change data
-            to_change["username"] = data["username"],
-            to_change["password"] = data["password"],
-            to_change["name"] = data["name"],
-            to_change["address"] = data["address"],
-            to_change["phone"] = data["phone"],
+            to_change["username"] = data["username"]
+            to_change["password"] = data["password"]
+            to_change["name"] = data["name"]
+            to_change["address"] = data["address"]
+            to_change["phone"] = data["phone"]
+            to_change.save()
             return JsonResponse({"isSuccess": True, "reason": "修改成功"})
     else:
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
