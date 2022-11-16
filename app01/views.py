@@ -148,7 +148,6 @@ def reg_ten(request):
     else:
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
 
-
 # Add a owner account.
 # Get: {
 #  "name": "",
@@ -298,7 +297,6 @@ def own_info(request):
 # With id, I can send you the detail of the house with the id.
 # Else, I will show the information of the houses owned by this owner.
 # Return see the code. (这句话是中式英语)
-# NOT TESTED!
 def houseinfo(request):
     # Check is owner login.
     if request.session["identity"] != True:
@@ -396,4 +394,53 @@ def housedels(request):
     else:
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
 
-        
+# API for pay.
+# POST:
+# Send me the code of the relation.
+# If you are Owner, house id, else, relation id.
+# {"id":xxx}
+def pay(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        if request.session["identity"] == False:
+            try:
+                code = Account.objects.get(id=data["id"])
+            except Account.DoesNotExist:
+                return JsonResponse({"isSuccess": False, "reason": "该订单不存在"})
+            else:
+                if request.session["id"] != code.tenant.id:
+                    return JsonResponse({"isSuccess": False, "reason": "订单与该租户无关"})
+                if code.house.rent >= code.house.maxnum:
+                    return JsonResponse({"isSuccess": False, "reason": "该房屋已经满员"})
+                if code.ten_paid == True:
+                    return JsonResponse({"isSuccess": True, "reason": "该租户中介费已经结清"})
+                else:
+                    code.ten_paid = True
+                    code.save()
+                    JsonResponse({"isSuccess": True, "reason": "该租户中介费结清"})
+        elif request.session["identity"] == True:
+            try:
+                code = House.objects.get(id=data["id"])
+            except House.DoesNotExist:
+                return JsonResponse({"isSuccess": False, "reason": "该房屋不存在"})
+            else:
+                if request.session["id"] != code.owner.id:
+                    return JsonResponse({"isSuccess": False, "reason": "房屋与该户主无关"})
+                if code.can_be_shown == True:
+                    return JsonResponse({"isSuccess": True, "reason": "该房屋入场费已经结清"})
+                else:
+                    code.can_be_shown = True
+                    code.save()
+                    JsonResponse({"isSuccess": True, "reason": "该房屋入场费结清"})
+        else:
+            return JsonResponse({"isSuccess": False, "reason": "没有登录"})
+    else:
+        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
+
+# Tenant require renting a house.
+# POST:
+# {
+#   id: // id of the house.
+# }
+
+
