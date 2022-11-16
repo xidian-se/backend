@@ -85,6 +85,11 @@ def login(request):
             return JsonResponse({
                 "isLogin": True,
                 "reason": "已经登录",
+                "identity": request.session["identity"],
+                "data": only_get_data(
+                    request.session["identity"],
+                    request.session["id"],
+                )
             })
         else:
             return JsonResponse({"isLogin": False, "reason": "没有登录"})
