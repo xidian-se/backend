@@ -8,7 +8,7 @@ class Owner(models.Model):
 
 
 class House(models.Model):
-    owners = models.ForeignKey(Owner,on_delete=models.CASCADE)
+    owner = models.ForeignKey(Owner,on_delete=models.CASCADE)
     address = models.CharField(max_length=200)
     name = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
@@ -22,7 +22,6 @@ class House(models.Model):
             MaxValueValidator(maxnum)
         ])
     price = models.FloatField()
-    state = models.BooleanField()
 
 class Tenant(models.Model):
     name = models.CharField(max_length=10)
