@@ -384,17 +384,17 @@ def houseinfo(request):
 # For the things that returns to you, see the code.
 def housedels(request):
     if request.method == "POST":
-        id_to_del = request.body["id"]
-        house = House.objects.get(id=id_to_del)
-        if house.owner != Owner.objects.get(id=request.session["id"]):
-            return JsonResponse({"isSuccess": False, "reason": "不是你的房子"}, status_code = 400)
+        data = json.loads(request.body)
+        house = House.objects.get(id=data["id"])
+        if house.owner != Account.objects.get(id=request.session["id"]).owner:
+            return JsonResponse({"isSuccess": False, "reason": "不是你的房子"})
         try:
             house.delete()
         except:
-            return JsonResponse({"isSuccess": False, "reason": "删除失败"}, status_code = 400)
+            return JsonResponse({"isSuccess": False, "reason": "删除失败"})
         else:
             return JsonResponse({"isSuccess": True, "reason": "删除成功"})
     else:
-        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"}, status_code = 400)
+        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
 
         

@@ -47,3 +47,4 @@ class Account(models.Model):
     identity = models.BooleanField()
     owner = models.ForeignKey(Owner,on_delete=models.CASCADE,blank=True,null=True)
     tenant = models.ForeignKey(Tenant,on_delete=models.CASCADE,blank=True,null=True)
+    pay = models.IntegerField()
