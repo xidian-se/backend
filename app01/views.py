@@ -213,11 +213,9 @@ def ten_up(request):
             if request.session["id"] == to_change.id:
                 return JsonResponse({"isSuccess": False, "reason": "非本人操作"})
             # Make sure it's a full crab. I'm pretty sure it is a rare condition.
-            if ('name' not in data.keys()):
+            if 'name' not in data.keys():
                 return JsonResponse({"isSuccess": False, "reason": "发送名字有空的"})
             # Change data
-            to_change["username"] = data["username"]
-            to_change["password"] = data["password"]
             to_change["name"] = data["name"]
             to_change["address"] = data["address"]
             to_change["sex"] = data["sex"]
@@ -254,8 +252,6 @@ def own_up(request):
             if ('name' not in data.keys()):
                 return JsonResponse({"isSuccess": False, "reason": "发送名字有空的"})
             # Change data
-            to_change["username"] = data["username"]
-            to_change["password"] = data["password"]
             to_change["name"] = data["name"]
             to_change["address"] = data["address"]
             to_change["phone"] = data["phone"]
@@ -337,7 +333,7 @@ def houseinfo(request):
             to_change.save()
             return JsonResponse({"isSuccess": True, "reason": "修改成功"})
         else: # Add
-            House.objects.create(
+            new = House(
                 owner = temp,
                 name = data["name"],
                 address = data["address"],
@@ -346,9 +342,9 @@ def houseinfo(request):
                 price = data["price"],
                 description = data["description"],
             )
-            return JsonResponse({"isSuccess": True, "reason": "添加成功"})
+            new.save()
+            return JsonResponse({"isSuccess": True, "reason": "添加成功", "id": new.id})
     elif request.method == "GET":
-        # Bug 90%
         if type(request.body) == str: # Specific 
             house = House.objects.get(id=request.body["id"])
             if house.owner != temp:
