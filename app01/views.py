@@ -225,7 +225,6 @@ def ten_up(request):
     else:
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
 
-
 # Update owner information
 # {
 #   "name": "",
@@ -465,6 +464,65 @@ def ten_req(request):
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
 
 # Tenant require canceling renting a house.
-# No need to write, owner got the right to do it.
+# No need to write, owner get the right to do it.
+# Now owner could do the thing. Owner cancel api.
+# POST me the id of the relation.
+def own_cancel(request):
+    if request.method == "POST":
+        if request.session["identity"] != True:
+            return JsonResponse({"isSuccess": False, "reason": "非户主身份登录"})
+        data = json.loads(request.body)
+        try:
+            deal = Relation.objects.get(id=data["id"])
+        except:
+            return JsonResponse({"isSuccess": False, "reason": "没有查到订单"})
+        else:
+            if deal.house.owner != request.session["id"]:
+                return JsonResponse({"isSuccess": False, "reason": "这房子不是你的"})
+            if deal.tenant.renting != deal.house:
+                return JsonResponse({"isSuccess": False, "reason": "他没有租住在这里"})
+            if deal.ten_paid == False:
+                return JsonResponse({"isSuccess": False, "reason": "租户没有清缴中介费"})
+            deal.tenant.renting = None
+            deal.house.rent -= 1
+            deal.delete()
+            return JsonResponse({"isSuccess": True, "reason": "退房成功"})
+    else:
+        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
 
-
+# Owner confirm the relation code api.
+# POST
+# ```json
+#{
+#  "id": "" ,// 租房操作id（其实就是租房对应关系的id）
+#  "state": true/false // 确认租房或者取消租房
+#}
+def own_confirm(request):
+    if request.method == "POST":
+        if request.session["identity"] != True:
+            return JsonResponse({"isSuccess": False, "reason": "非户主身份登录"})
+        data = json.loads(request.body)
+        try:
+            deal = Relation.objects.get(id=data["id"])
+        except:
+            return JsonResponse({"isSuccess": False, "reason": "没有查到订单"})
+        else:
+            if deal.house.owner != request.session["id"]:
+                return JsonResponse({"isSuccess": False, "reason": "这房子不是你的"})
+            if deal.house.rent >= deal.house.maxnum:
+                return JsonResponse({"isSuccess": False, "reason": "房屋已经满员"})
+            if deal.ten_paid == False:
+                return JsonResponse({"isSuccess": False, "reason": "租户没有清缴中介费"})
+            if deal.tenant.renting != None:
+                return JsonResponse({"isSuccess": False, "reason": "该租户已经租了另一个房子了"})
+            if data["state"] == True:
+                deal.tenant.renting = deal.house
+                deal.house.rent += 1
+                deal.save()
+                return JsonResponse({"isSuccess": True, "reason": "出租成功"})
+            if data["state"] == False:
+                deal.delete()
+                return JsonResponse({"isSuccess": True, "reason": "取消成功"})
+                
+    else:
+        return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})

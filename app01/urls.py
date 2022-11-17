@@ -16,4 +16,6 @@ urlpatterns = [
     path('owner/update',views.own_up,name='up_own'),
     path('owner/houseinfo',views.houseinfo,name='houseinfo'),
     path('owner/housedels',views.housedels,name='housedels'),
+    path('owner/cancel',views.own_cancel,name='own_cancel'),
+    path('owner/confirm',views.own_confirm,name='own_confirm'),
 ]
