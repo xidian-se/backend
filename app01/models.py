@@ -12,6 +12,7 @@ class House(models.Model):
     name = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
     can_be_shown = models.BooleanField()
+    price = models.IntegerField()
     maxnum = models.IntegerField(
         validators = [
             MinValueValidator(1),

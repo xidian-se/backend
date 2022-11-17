@@ -523,6 +523,68 @@ def own_confirm(request):
             if data["state"] == False:
                 deal.delete()
                 return JsonResponse({"isSuccess": True, "reason": "取消成功"})
-                
     else:
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
+
+# Owner info get apis.
+
+# /owner/opinfo
+# json 数组的第一个是未确定的租房信息，需要房主改变状态，
+# 第二个是正在租的信息，可以进行退租操作,也是一个数组，外层为房屋，
+# children 内为租客，每个房屋为外层数组的一个元素。
+def own_opinfo(request):
+    if request.session["identity"] != True:
+        return JsonResponse({"isSuccess": False, "reason": "非户主身份登录"})
+    # To be decided
+    undecided = []
+    results = Relation.objects.all()
+    for i in results:
+        if i.house.owner.id == request.session["id"] and i.tenant.renting != i.house:
+            undecided.append({
+                "id": i.id,
+                "name": i.house.name,
+                "tenant": i.tenant.name,
+                "phone": i.tenant.phone
+            })
+    # Decided
+    dealt = []
+    house = House.objects.all()
+    for i in house:
+        if i.owner.id == request.session["id"]:
+            to_append = { "name": i.name, "children": [] }
+            for j in results:
+                if j.house == i and j.tenant.renting == i:
+                    to_append["children"].append({
+                        "id": j.id,
+                        "tenant": j.tenant.name,
+                        "phone": j.tenant.phone,
+                    })
+            dealt.append(to_append)
+    # Return
+    return JsonResponse((undecided,dealt))
+
+# /owner/statistics
+def own_statistics(request):
+    if request.session["identity"] != True:
+        return JsonResponse({"isSuccess": False, "reason": "非户主身份登录"})
+    # Empty, Partly, Full
+    static = (0,0,0)
+    information = []
+    # Find all house
+    house = House.objects.all()
+    for i in house:
+        if i.owner.id == request.session["id"]:
+            information.append({
+                "name": i.name,
+                "total": i.maxnum,
+                "rent": i.rent,
+            })
+            if i.maxnum == i.rent:
+                static[2] += 1
+            elif i.rent == 0:
+                static[0] += 1
+            else:
+                static[1] += 1
+    # Return
+    return JsonResponse({static,information})
+

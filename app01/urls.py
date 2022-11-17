@@ -18,4 +18,6 @@ urlpatterns = [
     path('owner/housedels',views.housedels,name='housedels'),
     path('owner/cancel',views.own_cancel,name='own_cancel'),
     path('owner/confirm',views.own_confirm,name='own_confirm'),
+    path('owner/opinfo',views.own_opinfo,name='own_opinfo'),
+    path('owner/statistics',views.own_statistics,name='own_statistics'),
 ]
