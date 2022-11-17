@@ -535,11 +535,12 @@ def own_confirm(request):
 def own_opinfo(request):
     if request.session["identity"] != True:
         return JsonResponse({"isSuccess": False, "reason": "非户主身份登录"})
+    user = Account.objects.get(id=request.session["id"])
     # To be decided
     undecided = []
     results = Relation.objects.all()
     for i in results:
-        if i.house.owner.id == request.session["id"] and i.tenant.renting != i.house:
+        if i.house.owner.id == user.owner.id and i.tenant.renting != i.house:
             undecided.append({
                 "id": i.id,
                 "name": i.house.name,
@@ -550,7 +551,7 @@ def own_opinfo(request):
     dealt = []
     house = House.objects.all()
     for i in house:
-        if i.owner.id == request.session["id"]:
+        if i.owner.id == user.owner.id:
             to_append = { "name": i.name, "children": [] }
             for j in results:
                 if j.house == i and j.tenant.renting == i:
@@ -561,19 +562,20 @@ def own_opinfo(request):
                     })
             dealt.append(to_append)
     # Return
-    return JsonResponse((undecided,dealt))
+    return JsonResponse((undecided,dealt),safe=False)
 
 # /owner/statistics
 def own_statistics(request):
     if request.session["identity"] != True:
         return JsonResponse({"isSuccess": False, "reason": "非户主身份登录"})
+    user = Account.objects.get(id=request.session["id"])
     # Empty, Partly, Full
-    static = (0,0,0)
+    static = [0,0,0]
     information = []
     # Find all house
     house = House.objects.all()
     for i in house:
-        if i.owner.id == request.session["id"]:
+        if i.owner.id == user.owner.id:
             information.append({
                 "name": i.name,
                 "total": i.maxnum,
@@ -586,5 +588,70 @@ def own_statistics(request):
             else:
                 static[1] += 1
     # Return
-    return JsonResponse({static,information})
+    return JsonResponse((static,information),safe=False)
 
+# /owner/payinfo
+def own_payinfo(request):
+    if request.session["identity"] != True:
+        return JsonResponse({"isSuccess": False, "reason": "非户主身份登录"})
+    user = Account.objects.get(id=request.session["id"])
+    house_to_pay = House.objects.filter(owner=user.owner, can_be_shown=False)
+    to_return = []
+    for i in house_to_pay:
+        to_return.append({
+            "id": i.id,
+            "name": i.name,
+            "price": 670,
+        })
+    return JsonResponse(to_return,safe=False)
+
+# /tenant/statistics
+def ten_statistics(request):
+    if request.session["identity"] != False:
+        return JsonResponse({"isSuccess": False, "reason": "非租户身份登录"})
+    user = Account.objects.get(id=request.session["id"])
+    # Find all relation
+    totalstat = 0
+    information = []
+    relation = Relation.objects.filter(tenant=user.tenant)
+    for i in relation:
+        # No fee not seen
+        if i.ten_paid == False and i.house_shown == False:
+            stat = 0
+        # Fee but not seen
+        elif i.ten_paid == True and i.house_shown == False:
+            stat = 1
+        # Fee, seen but decided
+        elif i.ten_paid == True and i.house_shown == True:
+            stat = 2
+            # Fee, seen and rented
+            if i.tenant.renting == i.house:
+                stat = 3
+        # Update total situation.
+        if stat > totalstat:
+            totalstat = stat
+        # Append 
+        information.append({
+            "stat": stat,
+            "name": i.house.name,
+            "price": i.house.price,
+            "owner": i.house.owner.name,
+            "phone": i.house.owner.phone,
+        })
+    # Return
+    return JsonResponse({"stat":totalstat,"detail":information},safe=False)
+
+# /tenant/payinfo
+def ten_payinfo(request):
+    if request.session["identity"] != False:
+        return JsonResponse({"isSuccess": False, "reason": "非租户身份登录"})
+    user = Account.objects.get(id=request.session["id"])
+    relation = Relation.objects.filter(tenant=user.tenant, ten_paid=False)
+    to_return = []
+    for i in relation:
+        to_return.append({
+            "id": i.id,
+            "name": i.house.name,
+            "price": 50,
+        })
+    return JsonResponse(to_return,safe=False)
