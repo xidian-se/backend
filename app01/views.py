@@ -439,7 +439,7 @@ def pay(request):
                 else:
                     code.ten_paid = True
                     code.save()
-                    JsonResponse({"isSuccess": True, "reason": "该租户中介费结清"})
+                    return JsonResponse({"isSuccess": True, "reason": "该租户中介费结清"})
         elif request.session["identity"] == True:
             try:
                 code = House.objects.get(id=data["id"])
@@ -453,7 +453,7 @@ def pay(request):
                 else:
                     code.can_be_shown = True
                     code.save()
-                    JsonResponse({"isSuccess": True, "reason": "该房屋入场费结清"})
+                    return JsonResponse({"isSuccess": True, "reason": "该房屋入场费结清"})
         else:
             return JsonResponse({"isSuccess": False, "reason": "没有登录"})
     else:
@@ -473,16 +473,16 @@ def ten_req(request):
             return JsonResponse({"isSuccess": False, "reason": "非租户身份登录"})
         try:
             tenant = Account.objects.get(id=request.session["id"]).tenant
-        except Tenant.DoesNotExist:
+        except Account.DoesNotExist:
             return JsonResponse({"isSuccess": False, "reason": "租户信息没找到"})
         else:
             data = json.loads(request.body)
             house_to_rent = House.objects.get(id=data["id"])
-            if tenant.renting == house_to_rent:
-                return JsonResponse({"isSuccess": False, "reason": "该用户已经租住于此"})
+            if Relation.objects.filter(house=house_to_rent,tenant=tenant).exists() == True:
+                return JsonResponse({"isSuccess": False, "reason": "该用户已经申请或已经入住"})
             if house_to_rent.rent >= house_to_rent.maxnum:
                 return JsonResponse({"isSuccess": False, "reason": "该房屋已经满员"})
-            r = Relation(50,house_to_rent,tenant)
+            r = Relation(fee=50,house=house_to_rent,tenant=tenant)
             r.save()
             return JsonResponse({"isSuccess": True, "reason": "请求已经发送", "id": r.id})
     else:
@@ -536,7 +536,7 @@ def own_confirm(request):
         except:
             return JsonResponse({"isSuccess": False, "reason": "没有查到订单"})
         else:
-            if deal.house.owner != request.session["id"]:
+            if deal.house.owner != Account.objects.get(id=request.session["id"]).owner:
                 return JsonResponse({"isSuccess": False, "reason": "这房子不是你的"})
             if deal.house.rent >= deal.house.maxnum:
                 return JsonResponse({"isSuccess": False, "reason": "房屋已经满员"})
@@ -545,8 +545,13 @@ def own_confirm(request):
             if deal.tenant.renting != None:
                 return JsonResponse({"isSuccess": False, "reason": "该租户已经租了另一个房子了"})
             if data["state"] == True:
-                deal.tenant.renting = deal.house
-                deal.house.rent += 1
+                tenant = deal.tenant
+                house = deal.house
+                tenant.renting = house
+                house.rent += 1
+                print(tenant.renting,house.rent)
+                tenant.save()
+                house.save()
                 deal.save()
                 return JsonResponse({"isSuccess": True, "reason": "出租成功"})
             if data["state"] == False:
@@ -569,9 +574,9 @@ def own_opinfo(request):
     user = Account.objects.get(id=request.session["id"])
     # To be decided
     undecided = []
-    results = Relation.objects.all(house.owner.id == user.owner.id)
+    results = Relation.objects.all()
     for i in results:
-        if i.tenant.renting != i.house and i.ten_paid == True:
+        if i.house.owner.id == user.owner.id and i.tenant.renting != i.house and i.ten_paid == True:
             undecided.append({
                 "id": i.id,
                 "name": i.house.name,
@@ -653,10 +658,10 @@ def ten_statistics(request):
     relation = Relation.objects.filter(tenant=user.tenant)
     for i in relation:
         # No fee not seen
-        if i.ten_paid == False and i.house_shown == False:
+        if i.ten_paid == False:
             stat = 0
         # Fee but not decided
-        elif i.ten_paid == True and i.house_shown == False:
+        elif i.ten_paid == True:
             stat = 1
         # Fee and decided
         elif i.tenant.renting == i.house:
@@ -696,7 +701,7 @@ def ten_payinfo(request):
 # All avaliable house to rent.
 
 
-def avaliable_house():
+def avaliable_house(request):
     house = House.objects.filter(can_be_shown=True)
     to_return = []
     for i in house:
