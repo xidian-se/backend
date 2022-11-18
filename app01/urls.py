@@ -21,4 +21,5 @@ urlpatterns = [
     path('owner/confirm',views.own_confirm,name='own_confirm'),
     path('owner/opinfo',views.own_opinfo,name='own_opinfo'),
     path('owner/statistics',views.own_statistics,name='own_statistics'),
+    path('owner/payinfo',views.own_payinfo,name='own_payinfo'),
 ]
