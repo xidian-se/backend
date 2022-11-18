@@ -6,6 +6,7 @@ from .models import *
 from django.http import JsonResponse
 import json
 
+
 def only_get_data(identity, index):
     if identity == False:  # Tenant
         temp = Account.objects.get(id=index).tenant
@@ -29,6 +30,8 @@ def only_get_data(identity, index):
 # Deal with the login issue.
 # Get: {"username":xxx,"password":xxx}
 # Return see the code. Session not tested.
+
+
 def login(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -97,7 +100,9 @@ def login(request):
         return JsonResponse({"isSuccess": False, "reason": "POST 登录 GET 检测状态"})
 
 # Deal with the logout issue. Just clear the session.
-# Return see the code. 
+# Return see the code.
+
+
 def logout(request):
     request.session.clear()
     return JsonResponse({"isSuccess": True, "reason": "登录状态被清除"})
@@ -113,6 +118,8 @@ def logout(request):
 #  "password": ""
 # }
 # Return see the code.
+
+
 def reg_ten(request):
     if request.method == "POST":
         # See if has the same name here.
@@ -157,6 +164,8 @@ def reg_ten(request):
 #  "password": ""
 # }
 # Return see the code.
+
+
 def reg_own(request):
     if request.method == "POST":
         # See if has the same name here.
@@ -199,6 +208,8 @@ def reg_own(request):
 #   "password": ""
 # }
 # Return see the code.
+
+
 def ten_up(request):
     if request.method == "POST":
         if request.session["identity"] != False:
@@ -233,7 +244,9 @@ def ten_up(request):
 #   "username": "",
 #   "password": ""
 # }
-#Return see the code.
+# Return see the code.
+
+
 def own_up(request):
     if request.method == "POST":
         if request.session["identity"] != True:
@@ -258,16 +271,20 @@ def own_up(request):
         return JsonResponse({"isSuccess": False, "reason": "没有使用 POST"})
 
 # GET tenant info
+
+
 def ten_info(request):
     if request.session["identity"] == False:
-        return JsonResponse(only_get_data(request.session["identity"],request.session["id"]))
+        return JsonResponse(only_get_data(request.session["identity"], request.session["id"]))
     else:
         return JsonResponse({"isSuccess": False, "reason": "不是请求租户或者没有登录"})
 
 # GET owner info
+
+
 def own_info(request):
     if request.session["identity"] == True:
-        return JsonResponse(only_get_data(request.session["identity"],request.session["id"]))
+        return JsonResponse(only_get_data(request.session["identity"], request.session["id"]))
     else:
         return JsonResponse({"isSuccess": False, "reason": "不是请求房主或者没有登录"})
 
@@ -296,6 +313,8 @@ def own_info(request):
 # With id, I can send you the detail of the house with the id.
 # Else, I will show the information of the houses owned by this owner.
 # Return see the code. (这句话是中式英语)
+
+
 def houseinfo(request):
     # Check is owner login.
     if request.session["identity"] != True:
@@ -305,7 +324,7 @@ def houseinfo(request):
     if request.method == "POST":
         # Change the data.
         data = json.loads(request.body)
-        if "id" in data: # Update
+        if "id" in data:  # Update
             # Check if it is the owner.
             to_change = House.objects.get(id=data["id"])
             if to_change.owner != temp:
@@ -328,20 +347,21 @@ def houseinfo(request):
                 to_change.description = data["description"]
             to_change.save()
             return JsonResponse({"isSuccess": True, "reason": "修改成功"})
-        else: # Add
+        else:  # Add
             new = House(
-                owner = temp,
-                name = data["name"],
-                address = data["address"],
-                maxnum = data["total"],
-                rent = data["rent"],
-                price = data["price"],
-                description = data["description"],
+                owner=temp,
+                name=data["name"],
+                address=data["address"],
+                maxnum=data["total"],
+                rent=data["rent"],
+                price=data["price"],
+                description=data["description"],
+                can_be_shown=False
             )
             new.save()
             return JsonResponse({"isSuccess": True, "reason": "添加成功", "id": new.id})
     elif request.method == "GET":
-        if type(request.body) == str: # Specific 
+        if type(request.body) == str:  # Specific
             house = House.objects.get(id=request.body["id"])
             if house.owner != temp:
                 return JsonResponse({"isSuccess": False, "reason": "不是你的房子"})
@@ -354,7 +374,7 @@ def houseinfo(request):
                     "price": house.price,
                     "description": house.description
                 })
-        else: # All house owned by this owner.
+        else:  # All house owned by this owner.
             results = House.objects.filter(owner=temp)
             to_return = []
             for i in results:
@@ -367,7 +387,7 @@ def houseinfo(request):
                     "price": i.price,
                     "description": i.description
                 })
-            return JsonResponse(to_return,safe=False)
+            return JsonResponse(to_return, safe=False)
     else:
         return JsonResponse({"isSuccess": False, "reason": "POST添加修改GET获取信息"})
 
@@ -378,6 +398,8 @@ def houseinfo(request):
 #   "id": "",
 # }
 # For the things that returns to you, see the code.
+
+
 def housedels(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -398,6 +420,8 @@ def housedels(request):
 # Send me the code of the relation.
 # If you are Owner, house id, else, relation id.
 # {"id":xxx}
+
+
 def pay(request):
     if request.method == "POST":
         data = json.loads(request.body)
@@ -442,6 +466,8 @@ def pay(request):
 #   id: // id of the house.
 # }
 # Will return the relation's id.
+
+
 def ten_req(request):
     if request.method == "POST":
         if request.session["identity"] != False:
@@ -457,7 +483,7 @@ def ten_req(request):
                 return JsonResponse({"isSuccess": False, "reason": "该房屋已经满员"})
             if tenant.renting == house_to_rent:
                 return JsonResponse({"isSuccess": False, "reason": "该用户已经租住于此"})
-            r = Relation(50,house_to_rent,tenant)
+            r = Relation(50, house_to_rent, tenant)
             r.save()
             return JsonResponse({"isSuccess": True, "reason": "请求已经发送", "id": r.id})
     else:
@@ -467,6 +493,8 @@ def ten_req(request):
 # No need to write, owner get the right to do it.
 # Now owner could do the thing. Owner cancel api.
 # POST me the id of the relation.
+
+
 def own_cancel(request):
     if request.method == "POST":
         if request.session["identity"] != True:
@@ -493,10 +521,12 @@ def own_cancel(request):
 # Owner confirm the relation code api.
 # POST
 # ```json
-#{
+# {
 #  "id": "" ,// 租房操作id（其实就是租房对应关系的id）
 #  "state": true/false // 确认租房或者取消租房
-#}
+# }
+
+
 def own_confirm(request):
     if request.method == "POST":
         if request.session["identity"] != True:
@@ -532,6 +562,8 @@ def own_confirm(request):
 # json 数组的第一个是未确定的租房信息，需要房主改变状态，
 # 第二个是正在租的信息，可以进行退租操作,也是一个数组，外层为房屋，
 # children 内为租客，每个房屋为外层数组的一个元素。
+
+
 def own_opinfo(request):
     if request.session["identity"] != True:
         return JsonResponse({"isSuccess": False, "reason": "非户主身份登录"})
@@ -552,7 +584,7 @@ def own_opinfo(request):
     house = House.objects.all()
     for i in house:
         if i.owner.id == user.owner.id:
-            to_append = { "name": i.name, "children": [] }
+            to_append = {"name": i.name, "children": []}
             for j in results:
                 if j.house == i and j.tenant.renting == i:
                     to_append["children"].append({
@@ -562,15 +594,17 @@ def own_opinfo(request):
                     })
             dealt.append(to_append)
     # Return
-    return JsonResponse((undecided,dealt),safe=False)
+    return JsonResponse((undecided, dealt), safe=False)
 
 # /owner/statistics
+
+
 def own_statistics(request):
     if request.session["identity"] != True:
         return JsonResponse({"isSuccess": False, "reason": "非户主身份登录"})
     user = Account.objects.get(id=request.session["id"])
     # Empty, Partly, Full
-    static = [0,0,0]
+    static = [0, 0, 0]
     information = []
     # Find all house
     house = House.objects.all()
@@ -588,9 +622,11 @@ def own_statistics(request):
             else:
                 static[1] += 1
     # Return
-    return JsonResponse((static,information),safe=False)
+    return JsonResponse((static, information), safe=False)
 
 # /owner/payinfo
+
+
 def own_payinfo(request):
     if request.session["identity"] != True:
         return JsonResponse({"isSuccess": False, "reason": "非户主身份登录"})
@@ -603,9 +639,11 @@ def own_payinfo(request):
             "name": i.name,
             "price": 670,
         })
-    return JsonResponse(to_return,safe=False)
+    return JsonResponse(to_return, safe=False)
 
 # /tenant/statistics
+
+
 def ten_statistics(request):
     if request.session["identity"] != False:
         return JsonResponse({"isSuccess": False, "reason": "非租户身份登录"})
@@ -630,7 +668,7 @@ def ten_statistics(request):
         # Update total situation.
         if stat > totalstat:
             totalstat = stat
-        # Append 
+        # Append
         information.append({
             "stat": stat,
             "name": i.house.name,
@@ -639,9 +677,11 @@ def ten_statistics(request):
             "phone": i.house.owner.phone,
         })
     # Return
-    return JsonResponse({"stat":totalstat,"detail":information},safe=False)
+    return JsonResponse({"stat": totalstat, "detail": information}, safe=False)
 
 # /tenant/payinfo
+
+
 def ten_payinfo(request):
     if request.session["identity"] != False:
         return JsonResponse({"isSuccess": False, "reason": "非租户身份登录"})
@@ -654,4 +694,4 @@ def ten_payinfo(request):
             "name": i.house.name,
             "price": 50,
         })
-    return JsonResponse(to_return,safe=False)
+    return JsonResponse(to_return, safe=False)
