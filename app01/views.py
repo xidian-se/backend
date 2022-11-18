@@ -691,3 +691,21 @@ def ten_payinfo(request):
             "price": 50,
         })
     return JsonResponse(to_return,safe=False)
+
+# /avaliable
+# All avaliable house to rent.
+
+
+def avaliable_house():
+    house = House.objects.filter(can_be_shown=True)
+    to_return = []
+    for i in house:
+        to_return.append({
+            "id": i.id,
+            "name": i.name,
+            "address": i.address,
+            "price": i.price,
+            "max": i.maxnum,
+            "rent": i.rent,
+        })
+    return JsonResponse(to_return,safe=False)
