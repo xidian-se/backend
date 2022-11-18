@@ -47,4 +47,3 @@ class Relation(models.Model):
     house = models.ForeignKey(House,on_delete=models.CASCADE)
     tenant = models.ForeignKey(Tenant,on_delete=models.CASCADE)
     ten_paid = models.BooleanField(default=False)
-    house_shown = models.BooleanField(default=False)
