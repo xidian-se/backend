@@ -702,9 +702,15 @@ def ten_payinfo(request):
 
 
 def avaliable_house(request):
+    if request.session["identity"] != False:
+        return JsonResponse({"isSuccess": False, "reason": "非租户身份登录"})
+    user = Account.objects.get(id=request.session["id"])
     house = House.objects.filter(can_be_shown=True)
+    # Check the house.
     to_return = []
     for i in house:
+        if user.tenant.renting == i:
+            continue
         to_return.append({
             "id": i.id,
             "name": i.name,
