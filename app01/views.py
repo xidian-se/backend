@@ -431,7 +431,7 @@ def pay(request):
             except Relation.DoesNotExist:
                 return JsonResponse({"isSuccess": False, "reason": "该订单不存在"})
             else:
-                
+
                 if Account.objects.get(id=user_id).tenant.id != code.tenant.id:
                     return JsonResponse({"isSuccess": False, "reason": "订单与该租户无关"})
                 if code.ten_paid == True:
@@ -478,11 +478,11 @@ def ten_req(request):
         else:
             data = json.loads(request.body)
             house_to_rent = House.objects.get(id=data["id"])
-            if Relation.objects.filter(house=house_to_rent,tenant=tenant).exists() == True:
+            if Relation.objects.filter(house=house_to_rent, tenant=tenant).exists() == True:
                 return JsonResponse({"isSuccess": False, "reason": "该用户已经申请或已经入住"})
             if house_to_rent.rent >= house_to_rent.maxnum:
                 return JsonResponse({"isSuccess": False, "reason": "该房屋已经满员"})
-            r = Relation(fee=50,house=house_to_rent,tenant=tenant)
+            r = Relation(fee=50, house=house_to_rent, tenant=tenant)
             r.save()
             return JsonResponse({"isSuccess": True, "reason": "请求已经发送", "id": r.id})
     else:
@@ -549,7 +549,7 @@ def own_confirm(request):
                 house = deal.house
                 tenant.renting = house
                 house.rent += 1
-                print(tenant.renting,house.rent)
+                print(tenant.renting, house.rent)
                 tenant.save()
                 house.save()
                 deal.save()
@@ -656,16 +656,18 @@ def ten_statistics(request):
     totalstat = 0
     information = []
     relation = Relation.objects.filter(tenant=user.tenant)
+    if len(relation) == 0:
+        return JsonResponse({"stat": 0, "detail": []}, safe=False)
     for i in relation:
         # No fee not seen
         if i.ten_paid == False:
-            stat = 0
+            stat = 1
         # Fee but not decided
         elif i.ten_paid == True:
-            stat = 1
+            stat = 2
         # Fee and decided
         elif i.tenant.renting == i.house:
-            stat = 2
+            stat = 3
         # Update total situation.
         if stat > totalstat:
             totalstat = stat
@@ -695,7 +697,7 @@ def ten_payinfo(request):
             "name": i.house.name,
             "price": 50,
         })
-    return JsonResponse(to_return,safe=False)
+    return JsonResponse(to_return, safe=False)
 
 # /avaliable
 # All avaliable house to rent.
@@ -719,4 +721,4 @@ def avaliable_house(request):
             "max": i.maxnum,
             "rent": i.rent,
         })
-    return JsonResponse(to_return,safe=False)
+    return JsonResponse(to_return, safe=False)
